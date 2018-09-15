@@ -90,7 +90,7 @@ class MixedInputModel(nn.Module):
                  y_range=None, use_bn=False, is_reg=True, is_multi=False):
         super().__init__()
         for i,(c,s) in enumerate(emb_szs): assert c > 1, f"cardinality must be >=2, got emb_szs[{i}]: ({c},{s})"
-        if is_reg==False: assert out_sz >= 2, "arg is_reg==False (classification) requires out_sz>=2"
+        if is_reg==False and is_multi==False: assert out_sz >= 2, "For classification with out_sz=1, use is_multi=True"
         self.embs = nn.ModuleList([nn.Embedding(c, s) for c,s in emb_szs])
         for emb in self.embs: emb_init(emb)
         n_emb = sum(e.embedding_dim for e in self.embs)
@@ -142,6 +142,10 @@ class StructuredLearner(Learner):
         super().__init__(data, models, **kwargs)
 
     def _get_crit(self, data): return F.mse_loss if data.is_reg else F.binary_cross_entropy if data.is_multi else F.nll_loss
+
+    def predict_array(self,x_cat,x_cont):
+        self.model.eval()
+        return to_np(self.model(to_gpu(V(T(x_cat))),to_gpu(V(T(x_cont)))))
 
     def summary(self):
         x = [torch.ones(3, self.data.trn_ds.cats.shape[1]).long(), torch.rand(3, self.data.trn_ds.conts.shape[1])]

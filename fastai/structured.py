@@ -123,7 +123,7 @@ def is_date(x): return np.issubdtype(x.dtype, np.datetime64)
 
 def train_cats(df):
     """Change any columns of strings in a panda's dataframe to a column of
-    catagorical values. This applies the changes inplace.
+    categorical values. This applies the changes inplace.
 
     Parameters:
     -----------
@@ -319,7 +319,7 @@ def numericalize(df, col, name, max_n_cat):
     1     2    b    2
     2     3    a    1
     """
-    if not is_numeric_dtype(col) and ( max_n_cat is None or col.nunique()>max_n_cat):
+    if not is_numeric_dtype(col) and ( max_n_cat is None or len(col.cat.categories)>max_n_cat):
         df[name] = col.cat.codes+1
 
 def scale_vars(df, mapper):
